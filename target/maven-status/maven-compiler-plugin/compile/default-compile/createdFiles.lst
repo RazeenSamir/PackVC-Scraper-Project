@@ -1,3 +1,4 @@
 com\packvc\founderfinder\CompanyParser.class
+com\packvc\founderfinder\WikipediaFetcher.class
 com\packvc\founderfinder\Company.class
 com\packvc\founderfinder\Main.class

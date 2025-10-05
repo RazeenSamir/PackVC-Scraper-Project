@@ -2,6 +2,7 @@ package com.packvc.founderfinder;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Main entry point for the Founder Finder CLI tool.
@@ -40,6 +41,25 @@ public class Main {
             }
             
             System.out.println("\nPhase 2 complete - Company parsing ready");
+            
+            // Phase 3: Test Wikipedia resolution for Airbnb and Dropbox
+            System.out.println("\n=== PHASE 3: Wikipedia Resolution ===");
+            
+            for (Company company : companies) {
+                if (company.getName().equals("Airbnb") || company.getName().equals("Dropbox")) {
+                    System.out.println("\nResolving Wikipedia page for: " + company.getName());
+                    
+                    Optional<String> wikipediaUrl = WikipediaFetcher.resolveWikipediaPage(company.getName());
+                    
+                    if (wikipediaUrl.isPresent()) {
+                        System.out.println("✓ Found Wikipedia page: " + wikipediaUrl.get());
+                    } else {
+                        System.out.println("✗ No Wikipedia page found for " + company.getName());
+                    }
+                }
+            }
+            
+            System.out.println("\nPhase 3 complete - Wikipedia resolution ready");
             
         } catch (IOException e) {
             System.err.println("Error reading input file: " + e.getMessage());
