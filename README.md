@@ -104,12 +104,11 @@ The tool outputs a JSON file mapping company names to arrays of founder names:
 
 ## Future Improvements
 
-- **Caching System:** Implement local caching to avoid re-scraping the same companies
+- **Include JavaScript Scraping Functionality:** A lot of websites are built using JavaScript, and with the way the current scraper is built, it won't be able to scrape those sites.
 - **Confidence Scoring:** Add confidence scores for founder matches based on Wikipedia page quality
-- **Disambiguation Handling:** Better handling of Wikipedia disambiguation pages and multiple company matches
-- **Parallel Processing:** Add controlled parallelism with rate limiting for faster processing of large company lists
+- **Searching accross web:** Right now only Wikipedia pages are scraped, so adding more pages (like business insider) could help increase the
+chances of finding the right founders
 - **Enhanced Parsing:** Support for Selenium-based scraping if JavaScript-rendered content becomes necessary
 - **Multiple Languages:** Support for non-English Wikipedia versions
-- **Progress Indicators:** Real-time progress bars for large company lists
-- **Output Formats:** Support for CSV, XML, and other output formats
+- **Better Accuracy:** Right now the scraper was only able to find 50% of the founders for the respective companies (when I tested with a larger dataset). If allotted more time, this would be the first thing I'd try and fix
 
