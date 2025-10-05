@@ -1,8 +1,13 @@
 package com.packvc.founderfinder;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import org.jsoup.nodes.Document;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * Main entry point for the Founder Finder CLI tool.
@@ -42,24 +47,90 @@ public class Main {
             
             System.out.println("\nPhase 2 complete - Company parsing ready");
             
-            // Phase 3: Test Wikipedia resolution for Airbnb and Dropbox
-            System.out.println("\n=== PHASE 3: Wikipedia Resolution ===");
+            // Phase 5: Complete orchestration - process all companies
+            System.out.println("\n=== PHASE 5: Complete Processing ===");
             
-            for (Company company : companies) {
-                if (company.getName().equals("Airbnb") || company.getName().equals("Dropbox")) {
-                    System.out.println("\nResolving Wikipedia page for: " + company.getName());
-                    
-                    Optional<String> wikipediaUrl = WikipediaFetcher.resolveWikipediaPage(company.getName());
+            Map<String, List<String>> foundersMap = new LinkedHashMap<>();
+            
+            for (int i = 0; i < companies.size(); i++) {
+                Company company = companies.get(i);
+                String companyName = company.getName();
+                
+                System.out.println("\n--- Processing " + (i + 1) + "/" + companies.size() + ": " + companyName + " ---");
+                
+                try {
+                    // Step 1: Resolve Wikipedia page
+                    System.out.println("Resolving Wikipedia page for: " + companyName);
+                    Optional<String> wikipediaUrl = WikipediaFetcher.resolveWikipediaPage(companyName);
                     
                     if (wikipediaUrl.isPresent()) {
                         System.out.println("✓ Found Wikipedia page: " + wikipediaUrl.get());
+                        
+                        // Step 2: Extract founders
+                        System.out.println("Extracting founders from Wikipedia page...");
+                        Document doc = WikipediaFetcher.fetch(wikipediaUrl.get());
+                        List<String> founders = FounderExtractor.extractFounders(doc, companyName);
+                        
+                        if (!founders.isEmpty()) {
+                            System.out.println("✓ Found " + founders.size() + " founders for " + companyName + ":");
+                            for (int j = 0; j < founders.size(); j++) {
+                                System.out.println("  " + (j + 1) + ". " + founders.get(j));
+                            }
+                            foundersMap.put(companyName, founders);
+                        } else {
+                            System.out.println("✗ No founders found for " + companyName);
+                            foundersMap.put(companyName, new ArrayList<>());
+                        }
+                        
                     } else {
-                        System.out.println("✗ No Wikipedia page found for " + company.getName());
+                        System.out.println("✗ No Wikipedia page found for " + companyName);
+                        foundersMap.put(companyName, new ArrayList<>());
+                    }
+                    
+                } catch (Exception e) {
+                    System.err.println("✗ Error processing " + companyName + ": " + e.getMessage());
+                    foundersMap.put(companyName, new ArrayList<>());
+                }
+                
+                // Add delay between companies (except for the last one)
+                if (i < companies.size() - 1) {
+                    try {
+                        System.out.println("Waiting 400ms before next company...");
+                        Thread.sleep(400);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        System.err.println("Interrupted during delay");
+                        break;
                     }
                 }
             }
             
-            System.out.println("\nPhase 3 complete - Wikipedia resolution ready");
+            // Print final results
+            System.out.println("\n=== FINAL RESULTS ===");
+            System.out.println("Founders Map:");
+            for (Map.Entry<String, List<String>> entry : foundersMap.entrySet()) {
+                String company = entry.getKey();
+                List<String> founders = entry.getValue();
+                System.out.println("  " + company + ": " + founders);
+            }
+            
+            // Phase 6: Write JSON output
+            System.out.println("\n=== PHASE 6: JSON Output ===");
+            try {
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                String json = gson.toJson(foundersMap);
+                
+                Files.write(Paths.get(outputFile), json.getBytes());
+                System.out.println("✓ Successfully wrote founders to: " + outputFile);
+                System.out.println("JSON content:");
+                System.out.println(json);
+                
+            } catch (IOException e) {
+                System.err.println("✗ Error writing JSON file: " + e.getMessage());
+                System.exit(1);
+            }
+            
+            System.out.println("\nPhase 6 complete - JSON output written");
             
         } catch (IOException e) {
             System.err.println("Error reading input file: " + e.getMessage());
