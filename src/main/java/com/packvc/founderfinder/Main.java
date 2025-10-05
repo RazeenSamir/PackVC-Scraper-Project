@@ -1,5 +1,8 @@
 package com.packvc.founderfinder;
 
+import java.io.IOException;
+import java.util.List;
+
 /**
  * Main entry point for the Founder Finder CLI tool.
  * Scrapes Wikipedia for company founders and outputs to JSON.
@@ -27,8 +30,21 @@ public class Main {
         System.out.println("Input file: " + inputFile);
         System.out.println("Output file: " + outputFile);
         
-        // TODO: Implement founder scraping logic in next phase
-        System.out.println("Phase 1 complete - CLI argument handling ready");
+        try {
+            // Parse companies from input file
+            List<Company> companies = CompanyParser.parseFile(inputFile);
+            
+            System.out.println("\nParsed " + companies.size() + " companies:");
+            for (Company company : companies) {
+                System.out.println("  " + company.toString());
+            }
+            
+            System.out.println("\nPhase 2 complete - Company parsing ready");
+            
+        } catch (IOException e) {
+            System.err.println("Error reading input file: " + e.getMessage());
+            System.exit(1);
+        }
     }
     
     /**
